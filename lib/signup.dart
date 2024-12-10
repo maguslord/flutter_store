@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart'; // For date formatting
+
 
 class SignupScreen extends StatefulWidget {
   @override
@@ -16,16 +18,14 @@ class _SignupScreenState extends State<SignupScreen> {
   final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _dobController = TextEditingController();
   final TextEditingController _countryController = TextEditingController();
-
-      final TextEditingController _cityController = TextEditingController();
-        final TextEditingController _stateController = TextEditingController();
-          final TextEditingController _houseController = TextEditingController();
-            final TextEditingController _postalcodeController = TextEditingController();
+  final TextEditingController _cityController = TextEditingController();
+  final TextEditingController _stateController = TextEditingController();
+  final TextEditingController _houseController = TextEditingController();
+  final TextEditingController _postalcodeController = TextEditingController();
 
   Future<void> signupUser() async {
     final apiUrl = 'http://4.240.59.10:8090/store/signup';
 
-    // Prepare the data to be sent to the API
     final Map<String, dynamic> data = {
       'username': _usernameController.text,
       'email': _emailController.text,
@@ -34,12 +34,12 @@ class _SignupScreenState extends State<SignupScreen> {
       'lastName': _lastNameController.text,
       'phone': _phoneController.text,
       'dob': _dobController.text,
-        'country' :   _countryController.text,
-        'city'  :   _cityController.text,
-        'state' :  _stateController.text,
-        'house' :   _houseController.text,
-        'postalCode':  _postalcodeController.text,
-      'profilePicture': null, // You can handle file uploads if needed
+      'country': _countryController.text,
+      'city': _cityController.text,
+      'state': _stateController.text,
+      'house': _houseController.text,
+      'postalCode': _postalcodeController.text,
+      'profilePicture': null,
     };
 
     try {
@@ -53,7 +53,7 @@ class _SignupScreenState extends State<SignupScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Signup successful!')),
         );
-        Navigator.pop(context); // Go back to SplashScreen
+        Navigator.pop(context);
       } else {
         final responseBody = jsonDecode(response.body);
         ScaffoldMessenger.of(context).showSnackBar(
@@ -64,6 +64,23 @@ class _SignupScreenState extends State<SignupScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('An error occurred: $error')),
       );
+    }
+  }
+
+  Future<void> _selectDate() async {
+    final DateTime? selectedDate = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime(1900),
+      lastDate: DateTime.now(),
+    );
+
+    if (selectedDate != null) {
+      // Format the date and set it in the TextField
+      final String formattedDate = DateFormat('yyyy-MM-dd').format(selectedDate);
+      setState(() {
+        _dobController.text = formattedDate;
+      });
     }
   }
 
@@ -105,33 +122,32 @@ class _SignupScreenState extends State<SignupScreen> {
             ),
             TextField(
               controller: _dobController,
-              decoration: const InputDecoration(labelText: 'Date of Birth (YYYY-MM-DD)'),
+              readOnly: true, // Make it non-editable
+              onTap: _selectDate, // Trigger calendar picker
+              decoration: const InputDecoration(
+                labelText: 'Date of Birth (YYYY-MM-DD)',
+                suffixIcon: Icon(Icons.calendar_today), // Calendar icon
+              ),
             ),
-           TextField(
-              controller : _countryController , 
-                decoration: const InputDecoration(labelText: 'name of country')
+            TextField(
+              controller: _countryController,
+              decoration: const InputDecoration(labelText: 'Country'),
             ),
-
-               TextField(
-              controller : _stateController , 
-                decoration: const InputDecoration(labelText: 'name of province')
+            TextField(
+              controller: _stateController,
+              decoration: const InputDecoration(labelText: 'State'),
             ),
-
-
-             TextField(
-              controller : _cityController , 
-                decoration: const InputDecoration(labelText: 'name of city')
+            TextField(
+              controller: _cityController,
+              decoration: const InputDecoration(labelText: 'City'),
             ),
-
-
-             TextField(
-              controller : _houseController , 
-                decoration: const InputDecoration(labelText: 'house number')
+            TextField(
+              controller: _houseController,
+              decoration: const InputDecoration(labelText: 'House Number'),
             ),
-
-             TextField(
-              controller : _postalcodeController , 
-                decoration: const InputDecoration(labelText: 'Nearest postal code')
+            TextField(
+              controller: _postalcodeController,
+              decoration: const InputDecoration(labelText: 'Postal Code'),
             ),
             const SizedBox(height: 20),
             ElevatedButton(

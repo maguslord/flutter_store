@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
+import 'package:http/http.dart' as http;
+import'user.dart' ; 
+///import'CartPage_DeleteCart.dart' ; 
 
 class CartPage extends StatefulWidget {
-  final int userId;
-
-  const CartPage({required this.userId});
-
   @override
   _CartPageState createState() => _CartPageState();
 }
@@ -22,9 +21,24 @@ class _CartPageState extends State<CartPage> {
   }
 
   Future<void> fetchCartItems() async {
-    final apiUrl = 'http://4.240.59.10:8090/cart/view';  
+    const apiUrl = 'http://4.240.59.10:8090/store/cart/view'; // API Endpoint
     try {
-      final response = await http.get(Uri.parse(apiUrl));
+      final prefs = await SharedPreferences.getInstance();
+      final userId = prefs.getInt('userId');
+
+      if (userId == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('User not logged in.')),
+        );
+        return;
+      }
+
+      final response = await http.post(
+        Uri.parse(apiUrl),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'user_id': userId}),
+      );
+
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         final items = data['cart'] as List;
@@ -36,8 +50,139 @@ class _CartPageState extends State<CartPage> {
           });
         });
       } else {
+        final error = jsonDecode(response.body)['error'] ?? 'Unknown error';
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Failed to fetch cart items')),
+          SnackBar(content: Text('Error: $error')),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e')),
+      );
+    }
+  }
+
+  Future<void> deleteProduct(int productId) async {
+    const apiUrl = 'http://4.240.59.10:8090/store/cart/product/remove'; // API Endpoint for deleting a product
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final userId = prefs.getInt('userId');
+
+      if (userId == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('User not logged in.')),
+        );
+        return;
+      }
+
+      final response = await http.post(
+        Uri.parse(apiUrl),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'user_id': userId, 'product_id': productId}),
+      );
+
+      if (response.statusCode == 200) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Product removed successfully.')),
+        );
+        setState(() {
+          cartItems.removeWhere((item) => item['product_id'] == productId);
+          totalPrice = cartItems.fold(0.0, (sum, item) {
+            return sum + (item['total_price'] as num).toDouble();
+          });
+        });
+      } else {
+        final error = jsonDecode(response.body)['error'] ?? 'Unknown error';
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $error')),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e')),
+      );
+    }
+  }
+
+  Future<void> deleteCart() async {
+    const apiUrl = 'http://4.240.59.10:8090/store/cart/clear'; // API Endpoint for deleting the cart
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final userId = prefs.getInt('userId');
+
+      if (userId == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('User not logged in.')),
+        );
+        return;
+      }
+
+      final response = await http.post(
+        Uri.parse(apiUrl),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'user_id': userId}),
+      );
+
+      if (response.statusCode == 200) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Cart deleted successfully.')),
+        );
+        setState(() {
+          cartItems = [];
+          totalPrice = 0.0;
+        });
+      } else {
+        final error = jsonDecode(response.body)['error'] ?? 'Unknown error';
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $error')),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e')),
+      );
+    }
+  }
+
+  Future<void> checkout() async {
+    const apiUrl = 'http://4.240.59.10:8090/store/cart/checkout'; // API Endpoint for checkout
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final userId = prefs.getInt('userId');
+
+      if (userId == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('User not logged in.')),
+        );
+        return;
+      }
+
+      final response = await http.post(
+        Uri.parse(apiUrl),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'user_id': userId}),
+      );
+
+      if (response.statusCode == 200) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Checkout successful.')),
+        );
+        setState(() {
+          cartItems = [];
+          totalPrice = 0.0;
+        });
+
+            // Navigate back to the user page
+      // Navigate back to the User page
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (context) => User()),
+        (route) => false,
+      );
+      } else {
+        final error = jsonDecode(response.body)['error'] ?? 'Unknown error';
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $error')),
         );
       }
     } catch (e) {
@@ -73,8 +218,34 @@ class _CartPageState extends State<CartPage> {
                         subtitle: Text(
                           'Price: \$${item['price']} x ${item['quantity']} = \$${item['total_price']}',
                         ),
+                        trailing: IconButton(
+                          icon: Icon(Icons.delete, color: Colors.red),
+                          onPressed: () => deleteProduct(item['product_id']),
+                        ),
                       );
                     },
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      ElevatedButton(
+                        onPressed: deleteCart,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.red,
+                        ),
+                        child: const Text('Delete Cart'),
+                      ),
+                      ElevatedButton(
+                        onPressed: checkout,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.green,
+                        ),
+                        child: const Text('Checkout'),
+                      ),
+                    ],
                   ),
                 ),
                 Padding(

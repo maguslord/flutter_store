@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'CartPage.dart'; // Import the CartPage
+import 'CartPage.dart';
+import 'OrdersPage.dart'; // Import OrdersPage
 
 class User extends StatefulWidget {
   @override
@@ -47,12 +48,23 @@ class _UserState extends State<User> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => CartPage(userId: userId!), // Pass userId
+                        builder: (context) => CartPage(),
                       ),
                     );
                   },
                 ),
-                // Add more options here as needed
+                ListTile(
+                  title: const Text('View Orders'),
+                  leading: const Icon(Icons.receipt),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => OrdersPage(userId: userId!), // Pass userId
+                      ),
+                    );
+                  },
+                ),
               ],
             ),
     );

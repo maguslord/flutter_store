@@ -18,7 +18,7 @@ class _BottomNavBarState extends State<BottomNavBar> {
     if (currentIndex == 0) {
       selectedScreen = ProductListPage();
     } else if (currentIndex == 1) {
-      selectedScreen = Search();
+      selectedScreen = SearchPage();
     } else {
       selectedScreen = User();
     }
