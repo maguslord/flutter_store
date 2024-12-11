@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '/main.dart';
-import '/bottom_nav_bar.dart';
+import 'admin_bottom_nav_bar.dart';
 import 'adminhome.dart' ;
 
 class LoginScreen extends StatefulWidget {
@@ -22,7 +22,7 @@ class _LoginScreenState extends State<LoginScreen> {
       );
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => BottomNavBar ()),
+        MaterialPageRoute(builder: (context) => AdminBottomNavBar ()),
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -57,7 +57,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 // Navigate to the Customer Page
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => AdminPage()),
+                  MaterialPageRoute(builder: (context) => AdminBottomNavBar()),
                 );
               },
               child: const Text('Login'),

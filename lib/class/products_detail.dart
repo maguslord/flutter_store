@@ -6,6 +6,7 @@ class Product {
   final String imageUrl;
   final String supplierName;
   final String categoryName;
+  final int quantity ;
 
   Product({
     required this.id,
@@ -15,6 +16,7 @@ class Product {
     required this.imageUrl,
     required this.supplierName,
     required this.categoryName,
+    required this.quantity ,
   });
 
   factory Product.fromJson(Map<String, dynamic> json) {
@@ -30,6 +32,9 @@ class Product {
       imageUrl: json['product_image'].toString(),
       supplierName: json['supplier_name'].toString(),
       categoryName: json['category_name'].toString(),
+      quantity: json['quantity'] is int 
+          ? json['quantity'] 
+          : int.parse(json['quantity'].toString()),
     );
   }
 }

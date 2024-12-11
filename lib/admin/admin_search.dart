@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 
-class AddNewItemScreen extends StatelessWidget {
+class SearchScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Add New Item'),
+        title: const Text('Search'),
       ),
       body: const Center(
         child: Text(
-          'Add New Item Screen',
+          'Search Page',
           style: TextStyle(fontSize: 20),
         ),
       ),

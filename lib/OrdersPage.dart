@@ -61,7 +61,7 @@ class _OrdersPageState extends State<OrdersPage> {
               itemBuilder: (context, index) {
                 final order = orders[index];
                 return Card(
-                  color: Color.fromARGB(220, 25, 222, 159),
+                  color: Color.fromARGB(225, 225, 225, 0),
                   elevation: 5,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(15.0),
@@ -103,6 +103,6 @@ class _OrdersPageState extends State<OrdersPage> {
                 );
               },
             ),
-    );
+    ); 
   }
 }
