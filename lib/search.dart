@@ -1,8 +1,11 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'class/products_detail.dart';
 import 'ProductDetailsPage.dart';
+import 'advance_search.dart'; // Assuming this page will be created
+import 'class/products_detail.dart';
+
+
 
 class SearchPage extends StatefulWidget {
   @override
@@ -21,52 +24,47 @@ class _SearchPageState extends State<SearchPage> {
   }
 
   Future<void> fetchProducts(String query) async {
-  if (query.isEmpty) {
-    setState(() {
-      _products = [];
-    });
-    return;
-  }
-
-  setState(() {
-    _isLoading = true;
-  });
-
-  final apiUrl = 'http://4.240.59.10:8090/store/products/search';
-
-  try {
-    final response = await http.post(
-      Uri.parse(apiUrl),
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({'product_name': query.toLowerCase()}),
-    );
-
-    if (response.statusCode == 200) {
-      // Directly parse the response body as a List
-      final List<dynamic> data = jsonDecode(response.body);
-
+    if (query.isEmpty) {
       setState(() {
-        _products = data
-            .map((item) => Product.fromJson(item))
-            .toList();
+        _products = [];
       });
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Failed to fetch products.')),
-      );
+      return;
     }
-  } catch (e) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Error: $e')),
-    );
-  } finally {
+
     setState(() {
-      _isLoading = false;
+      _isLoading = true;
     });
+
+    final apiUrl = 'http://4.240.59.10:8090/store/products/search';
+
+    try {
+      final response = await http.post(
+        Uri.parse(apiUrl),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'product_name': query.toLowerCase()}),
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(response.body);
+
+        setState(() {
+          _products = data.map((item) => Product.fromJson(item)).toList();
+        });
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to fetch products.')),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e')),
+      );
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
   }
-}
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -92,34 +90,30 @@ class _SearchPageState extends State<SearchPage> {
             const Expanded(child: Center(child: CircularProgressIndicator()))
           else if (_products.isEmpty)
             const Expanded(
-              child: Center(
-                child: Text('No products found. Start searching!'),
-              ),
+              child: Center(child: Text('No products found. Start searching!')),
             )
           else
             Expanded(
               child: GridView.builder(
                 padding: const EdgeInsets.all(8.0),
                 gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2, // Two products per row
-                  crossAxisSpacing: 8.0, // Space between columns
-                  mainAxisSpacing: 8.0, // Space between rows
-                  childAspectRatio: 0.75, // Adjust aspect ratio for product cards
+                  crossAxisCount: 2,
+                  crossAxisSpacing: 8.0,
+                  mainAxisSpacing: 8.0,
+                  childAspectRatio: 0.75,
                 ),
                 itemCount: _products.length,
                 itemBuilder: (context, index) {
                   final product = _products[index];
                   return GestureDetector(
                     onTap: () {
-                      
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) =>
-                            ProductDetailsPage(product: product),
-                      ),
-                    );
-                  
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              ProductDetailsPage(product: product),
+                        ),
+                      );
                     },
                     child: Card(
                       elevation: 2.0,
@@ -178,6 +172,17 @@ class _SearchPageState extends State<SearchPage> {
                 },
               ),
             ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => AdvancedSearchPage(),
+                ),
+              );
+            },
+            child: const Text('Advanced Search'),
+          ),
         ],
       ),
     );

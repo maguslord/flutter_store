@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import '/main.dart';
 import 'admin_bottom_nav_bar.dart';
-import 'adminhome.dart' ;
 
 class LoginScreen extends StatefulWidget {
   @override
@@ -12,9 +10,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
-  Future<void> loginadmin() async {
-     // Replace with actual API
-
+  Future<void> loginAdmin() async {
     // Mock login logic
     if (_usernameController.text == 'test' && _passwordController.text == '1234') {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -22,7 +18,7 @@ class _LoginScreenState extends State<LoginScreen> {
       );
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => AdminBottomNavBar ()),
+        MaterialPageRoute(builder: (context) => AdminBottomNavBar()),
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -53,15 +49,8 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
             const SizedBox(height: 20),
             ElevatedButton(
-               onPressed: () {
-                // Navigate to the Customer Page
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => AdminBottomNavBar()),
-                );
-              },
+              onPressed: () => loginAdmin(),
               child: const Text('Login'),
-              
             ),
           ],
         ),

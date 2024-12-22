@@ -1,22 +1,61 @@
-
-import '/AddtoCartPage.dart';
 import 'package:flutter/material.dart';
-// Import the cart service
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 import '/class/products_detail.dart';
 
-class AdminProductDetailsPage extends StatelessWidget {
+class AdminProductDetailsPage extends StatefulWidget {
   final Product product;
 
   AdminProductDetailsPage({required this.product});
 
   @override
+  _AdminProductDetailsPageState createState() =>
+      _AdminProductDetailsPageState();
+}
+
+class _AdminProductDetailsPageState extends State<AdminProductDetailsPage> {
+  final TextEditingController _quantityController = TextEditingController();
+  bool isQuantityEnabled = false;
+  bool isAddButtonEnabled = false;
+
+  // Function to call the API to add quantity
+  Future<void> addProductQuantity(int productId, int quantity) async {
+    const apiUrl = 'http://4.240.59.10:8090/admin/add-quantity';
+
+    try {
+      final response = await http.post(
+        Uri.parse(apiUrl),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'product_id': productId, 'quantity': quantity}),
+      );
+
+      if (response.statusCode == 200) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Quantity added successfully!')),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to add quantity: ${response.body}')),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e')),
+      );
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final product = widget.product;
+
     return Scaffold(
       appBar: AppBar(title: Text(product.name)),
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Product Image
             SizedBox(
               width: double.infinity,
               height: 250,
@@ -24,12 +63,8 @@ class AdminProductDetailsPage extends StatelessWidget {
                 product.imageUrl,
                 fit: BoxFit.cover,
                 loadingBuilder: (context, child, loadingProgress) {
-                  if (loadingProgress == null) {
-                    return child; // Image loaded successfully
-                  }
-                  return const Center(
-                    child: CircularProgressIndicator(), // Loading indicator
-                  );
+                  if (loadingProgress == null) return child;
+                  return const Center(child: CircularProgressIndicator());
                 },
                 errorBuilder: (context, error, stackTrace) {
                   return const Center(
@@ -37,11 +72,12 @@ class AdminProductDetailsPage extends StatelessWidget {
                       Icons.broken_image,
                       color: Colors.grey,
                       size: 100,
-                    ), // Placeholder for failed image
+                    ),
                   );
                 },
               ),
             ),
+            // Product Details
             Padding(
               padding: const EdgeInsets.all(16.0),
               child: Column(
@@ -54,14 +90,11 @@ class AdminProductDetailsPage extends StatelessWidget {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                      const SizedBox(height: 16),
-                  
+                  const SizedBox(height: 16),
                   Text(
-                    'Remaining Quantity:  ${product.quantity.toString()}',
+                    'Remaining Quantity: ${product.quantity.toString()}',
                     style: const TextStyle(fontSize: 19),
                   ),
-  
-
                   const SizedBox(height: 8),
                   Text(
                     '\$${product.price.toStringAsFixed(2)}',
@@ -85,17 +118,72 @@ class AdminProductDetailsPage extends StatelessWidget {
                     'Category: ${product.categoryName}',
                     style: const TextStyle(fontSize: 16),
                   ),
+                  const SizedBox(height: 16),
+                  // Quantity Input Section
+                  Row(
+                    children: [
+                      // Quantity Input Field
+                      Expanded(
+                        child: TextField(
+                          controller: _quantityController,
+                          enabled: isQuantityEnabled,
+                          keyboardType: TextInputType.number,
+                          decoration: const InputDecoration(
+                            labelText: 'Quantity',
+                            border: OutlineInputBorder(),
+                          ),
+                          onChanged: (value) {
+                            setState(() {
+                              // Ensure only valid integers are accepted
+                              isAddButtonEnabled = int.tryParse(value) != null &&
+                                  int.parse(value) > 0;
+                            });
+                          },
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      // Enable Button
+                      ElevatedButton(
+                        onPressed: () {
+                          setState(() {
+                            isQuantityEnabled = true;
+                          });
+                        },
+                        child: const Text('Enable'),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  // Add Quantity Button
+                  ElevatedButton(
+                    onPressed: isAddButtonEnabled
+                        ? () async {
+                            final quantity = int.parse(_quantityController.text);
+                            await addProductQuantity(product.id, quantity);
+                            setState(() {
+                              isQuantityEnabled = false;
+                              isAddButtonEnabled = false;
+                              _quantityController.clear();
+                            });
+                          }
+                        : null,
+                    child: const Text('Add Quantity'),
+                  ),
+                  // Warning Message
+                  if (!isAddButtonEnabled)
+                    const Padding(
+                      padding: EdgeInsets.only(top: 8.0),
+                      child: Text(
+                        'Add button disabled until valid quantity is entered.',
+                        style: TextStyle(color: Colors.red),
+                      ),
+                    ),
                 ],
               ),
             ),
           ],
         ),
       ),
-   //   floatingActionButton: FloatingActionButton.extended(
-     //   onPressed: () => addToCart(context, product), // Call the addToCart from cart_service.dart
-       // label: const Text('Add to Cart'),
-       // icon: const Icon(Icons.add_shopping_cart),
-    //  ),
     );
   }
 }
